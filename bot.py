@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from aiogram import Bot, Dispatcher
 from utils.config import TOKEN
 from utils.register_handlers import register_handlers
