@@ -34,6 +34,6 @@ async def register_message_handlers(dp, bot):
         result = await get_by_date(dt_from, dt_upto, group_type)
 
 
-        await message.answer(f"Результат агрегации: {result}")
+        await message.answer(f"{result}")
 
 

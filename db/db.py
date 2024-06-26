@@ -3,6 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.server_api import ServerApi
 import logging
 from datetime import datetime, timedelta, timezone
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -37,19 +38,22 @@ async def get_by_date(dt_from, dt_upto, group_type: str):
     labels = []
     dataset = []
 
-    while start <= end:
+    while start < end:
         labels.append(start.strftime("%Y-%m-%dT%H:%M:%S"))
 
         if group_type == "month":
-            period_end = (start.replace(day=1) + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+            if start.month == 12:
+                next_period_start = start.replace(year=start.year + 1, month=1, day=1)
+            else:
+                next_period_start = start.replace(month=start.month + 1, day=1)
         elif group_type == "day":
-            period_end = start + timedelta(days=1) - timedelta(seconds=1)
+            next_period_start = start + timedelta(days=1)
         elif group_type == "hour":
-            period_end = start + timedelta(hours=1) - timedelta(seconds=1)
+            next_period_start = start + timedelta(hours=1)
 
         aggregation = await collection.aggregate([
             {"$match": {
-                "dt": {"$gte": start, "$lt": period_end + timedelta(seconds=1)}
+                "dt": {"$gte": start, "$lt": next_period_start}
             }},
             {"$group": {
                 "_id": None,
@@ -60,13 +64,28 @@ async def get_by_date(dt_from, dt_upto, group_type: str):
         if aggregation:
             dataset.append(aggregation[0]['total'])
         else:
-            dataset.append(0)  
+            dataset.append(0)  # Append 0 if no data is found
 
-        if group_type == "month":
-            start = (start.replace(day=1) + timedelta(days=32)).replace(day=1)
-        else:
-            start += timedelta(days=1) if group_type == "day" else timedelta(hours=1)
+        start = next_period_start
 
-    return {"dataset": dataset, "labels": labels}
+    # For 'hour' group type, include the last label without adding data
+    if group_type == "hour" and labels[-1] != end.strftime("%Y-%m-%dT%H:%M:%S"):
+        labels.append(end.strftime("%Y-%m-%dT%H:%M:%S"))
+        dataset.append(0)
+
+    # For 'day' and 'month' group types, ensure the last period is not added if it goes beyond the end
+    if group_type in ["day", "month"] and labels[-1] == end.strftime("%Y-%m-%dT%H:%M:%S"):
+        labels.pop()
+        dataset.pop()
+
+    # Convert the result to JSON format with double quotes
+    result = {
+        "dataset": dataset,
+        "labels": labels
+    }
+
+    return json.dumps(result)
+
+
 
 
