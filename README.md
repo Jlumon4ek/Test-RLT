@@ -65,14 +65,7 @@ mongorestore --db rlt_test --collection salaries C:\UserPath\sample_collection.b
 
 ## Запуск бота
 
-Для запуска бота необходимо указать токен в файле `/files/envs/.env` и выполнить файл `bot.py`.
-
-## Требования
-
-Для работы решения необходимы следующие компоненты:
-- Python3
-- Asyncio
-- MongoDB
+Для запуска бота необходимо указать токен в файле `/files/envs/.env` и выполнить файл `python bot.py`.
 
 ## Ссылка на коллекцию данных
 
