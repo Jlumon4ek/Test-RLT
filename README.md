@@ -65,7 +65,7 @@ mongorestore --db rlt_test --collection salaries C:\UserPath\sample_collection.b
 
 ## Запуск бота
 
-Для запуска бота необходимо указать токен в файле `config.py` и выполнить файл `bot.py`.
+Для запуска бота необходимо указать токен в файле `/files/envs/.env` и выполнить файл `bot.py`.
 
 ## Требования
 
